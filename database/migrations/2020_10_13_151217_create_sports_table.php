@@ -19,7 +19,22 @@ class CreateSportsTable extends Migration
             $table->id();
             $table->timestamps();
             $table->string('name');
+            $table->string('name_en');
             $table->string('image');
+            $table->integer('min_change');
+            $table->integer('max_change');
+            $table->float('premial_scale');
+            $table->float('draw_scale');
+
+            $table->integer('premial_score');
+            $table->integer('max_point_difference');
+            $table->integer('starting_point');
+            $table->string('goal_name_en');
+            $table->string('goal_name_ge');
+            $table->integer('has_draw');//0no1yes
+
+
+
         });
         Schema::enableForeignKeyConstraints();
 

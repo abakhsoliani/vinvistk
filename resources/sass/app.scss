@@ -268,11 +268,21 @@ img.delete {
 }
 
 .form-group.my-form-group.row {
-    width: 100%;
+    width: 100%; 
     margin-left: 0;
     margin-right: 0;
 }
 
 .my-form-group>a {
     width: 100%;
+}
+
+
+.player-names>span.green, .player-goals>span.green {
+    font-weight: bold;
+    color: black;
+}
+
+.player-names>span, .player-goals>span {
+    color: #6f6f6f;
 }

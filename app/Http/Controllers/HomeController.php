@@ -8,6 +8,7 @@ use App\Models\Sport;
 use App\Models\League;
 use App\Models\League_entry;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Match;
 
@@ -49,8 +50,9 @@ class HomeController extends Controller
         $league = League::find($request->id);
         $league_entries = $league->league_entries;
         $matches = $league->matches;
+        $sport = $league->sport;
 
-        return view('league',['league' => $league,'league_entries' => $league_entries, 'matches' => $matches]);
+        return view('league',['league' => $league,'league_entries' => $league_entries, 'matches' => $matches, 'sport' => $sport]);
     }
 
 
@@ -58,7 +60,13 @@ class HomeController extends Controller
 
         $league = League::find($request->league_id);
         // $matches = Match::where(['league_id' => $request->league_id, 'first_user_id' => $request->user_id])->orWhere(['league_id' => $request->league_id, 'second_user_id' => $request->user_id])->orderBy('id', 'desc')->get();
-        $matches = Match::where('league_id',$request->league_id)->where('first_user_id', $request->user_id)->orWhere('second_user_id', $request->user_id)->orderBy('id', 'desc')->get();
+        //$matches = Match::where('league_id',$request->league_id)->where('first_user_id', $request->user_id)->orWhere('second_user_id', $request->user_id)->orderBy('id', 'desc')->get();
+        $matches = Match::select(DB::raw(' * '))->whereRaw('league_id = '.$request->league_id.' and (first_user_id = '.$request->user_id.' or second_user_id = '.$request->user_id.') ')->get();
+
+
+
+
+
 
         $matches_sorted = [];
         foreach ($matches as $match){
@@ -69,7 +77,7 @@ class HomeController extends Controller
                 array_push($matches_sorted[$match->second_user_id]['matches'], $match);
 
                 $matches_sorted[$match->second_user_id]['goals_for'] += $match->first_user_goals; 
-                $matches_sorted[$match->second_user_id]['goals_against'] += $match->second_user_id; 
+                $matches_sorted[$match->second_user_id]['goals_against'] += $match->second_user_goals; 
 
 
                 if($match->first_user_goals>$match->second_user_goals){
@@ -103,24 +111,22 @@ class HomeController extends Controller
         
         $matches = $league->matches;
         $user = User::find($request->user_id);
+        $sport = $league->sport;
 
 
-        return view('stats',['league' => $league,'league_entry' => $league_entry, 'sorted_opponents' => $matches_sorted, 'user' => $user]);
+        return view('stats',['league' => $league,'league_entry' => $league_entry, 'sorted_opponents' => $matches_sorted, 'user' => $user, 'sport'=>$sport]);
     }
 
 
     public function enter_league(Request $request){
         $league = League::where(['unique_id' => $request->league_code])->first();
-        if(is_null($league)){
-            $league_entries = $request->user()->league_entries;
-            //dd(Invitation::where('user_to_id', $request->user()->id)->get());
-            $sports = Sport::all();
-            $matches = Match::where(['first_user_id' => $request->user()->id])->orWhere(['second_user_id' => $request->user()->id])->orderBy('id', 'desc')->get();
 
-            // $invitations = Invitation::where(['user_to_id' => $request->user()->id, 'status' => 0])->get();
+        if(is_null($league)){
+           // $invitations = Invitation::where(['user_to_id' => $request->user()->id, 'status' => 0])->get();
             return redirect('home?new_user=false');
 
         } else {
+            $sport = $league->sport;
             $entry = League_entry::where(['user_id'=>$request->user()->id, 'league_id' => $league->id])->first();
             if(is_null($entry)){
                 $league_entry = League_entry::create([
@@ -132,9 +138,9 @@ class HomeController extends Controller
                     'draw' => 0,
                     'goals_for' => 0,
                     'goals_against' => 0,
-                    'max_score' => 40,
-                    'min_score' => 40,
-                    'score' => 40,
+                    'max_score' => $sport->starting_point,
+                    'min_score' => $sport->starting_point,
+                    'score' => $sport->starting_point,
                 ]);
 
                 $league_entry->save();
@@ -150,6 +156,7 @@ class HomeController extends Controller
 
     public function create_league(Request $request){
         $random = rand();
+        $sport = Sport::find($request->sport);
         $league = League::create([
             'name' =>  $request->league_name,
             'sport_id' => $request->sport,
@@ -166,9 +173,9 @@ class HomeController extends Controller
             'draw' => 0,
             'goals_for' => 0,
             'goals_against' => 0,
-            'max_score' => 40,
-            'min_score' => 40,
-            'score' => 40,
+            'max_score' => $sport->starting_point,
+            'min_score' => $sport->starting_point,
+            'score' => $sport->starting_point,
         ]);
 
         $league_entry->save();
@@ -181,59 +188,68 @@ class HomeController extends Controller
     }
 
 
-    public function calculateScores($first_player_entry, $first_player_goals, $second_player_entry, $second_player_goals){
+    public function calculateScores($sport,$first_player_entry, $first_player_goals, $second_player_entry, $second_player_goals){
         $change = 0;
         $winner = 0;
         if($first_player_goals>$second_player_goals){//if first one won
             $winner =1;
             $difference = $first_player_entry->score - $second_player_entry->score;
-            if($difference>=10){
+            if($difference>=$sport->max_point_difference){
                 $change = 0.01;
-            } elseif($difference<=-10){
-                $change = 2;
+            } elseif($difference<=$sport->max_point_difference*(-1)){
+                $change = $sport->max_change;
             } else {
-                $change = 1 + $difference*(-1)/10;
+                $change = $sport->min_change + ($difference*(-1)/$sport->max_point_difference)*($sport->max_change-$sport->min_change);
             }
             
-            if($first_player_goals-$second_player_goals>2){
-                $change = $change*1.5;
+            if($first_player_goals-$second_player_goals>$sport->premial_score){
+                $change = $change*$sport->premial_scale;
             }
 
         } elseif($first_player_goals<$second_player_goals){//if second won
             $winner = 2;
+
             $difference = $first_player_entry->score - $second_player_entry->score;
-            if($difference>=10){
-                $change = -2;
-            } elseif($difference<=-10){
+
+            if($difference>=$sport->max_point_difference){
+                $change = (-1)*$sport->max_change;
+            } elseif($difference<=(-1)*$sport->max_point_difference){
                 $change = -0.01;
             } else {
-                $change = (1 + $difference/10)*(-1);
+
+                $change = ($sport->min_change + $difference/$sport->max_point_difference*($sport->max_change-$sport->min_change))*(-1);
+
             }
             
-            if($second_player_goals-$first_player_goals>2){
-                $change = $change*1.5;
+            if($second_player_goals-$first_player_goals>$sport->premial_score){
+                $change = $change*$sport->premial_scale;
             }
 
 
 
         } else {//if draw
             $difference = $first_player_entry->score - $second_player_entry->score;
-            if($difference>10) $difference=10;
-            if($difference<-10) $difference=-10;
-            $change = (0.4*$difference/10)*(-1);
+            if($difference>$sport->max_point_difference) $difference=$sport->max_point_difference;
+            if($difference<(-1)*$sport->max_point_difference) $difference=-(-1)*$sport->max_point_difference;
+            $change = ($sport->draw_scale*($difference/$sport->max_point_difference)*(-1)*($sport->max_change-$sport->min_change));
         }
+
         
         return ['change' => $change, 'winner' => $winner];
     }
 
 
     public function add_match_entry($first_player_entry_id, $first_player_score, $second_player_entry_id, $second_player_score, $league_id){
+        $sport = League::find($league_id)->sport;
+        if($first_player_score==$second_player_score && $sport->has_draw==0){
+            return redirect('league/'.$league_id);
+        }
         $first_player_entry = League_entry::find($first_player_entry_id);
         $first_player_goals = $first_player_score;
         $second_player_entry = League_entry::find($second_player_entry_id);
         $second_player_goals = $second_player_score;
 
-        $calculatedScores = $this->calculateScores($first_player_entry, $first_player_goals, $second_player_entry, $second_player_goals);
+        $calculatedScores = $this->calculateScores($sport,$first_player_entry, $first_player_goals, $second_player_entry, $second_player_goals);
 
        
 

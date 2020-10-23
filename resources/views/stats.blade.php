@@ -18,8 +18,12 @@
                         <h3>
                             {{$opponent['user']->name}}    
                         </h3>
-                        <p>მოგება:{{$opponent['wins']}} - ფრე:{{$opponent['draw']}} - წაგება:{{$opponent['lost']}}</p>
-                        <p>  გატანილი გოლი:{{$opponent['goals_for']}} - გაშვებული გოლი:{{$opponent['goals_against']}}</p>
+                        <p>მოგება:{{$opponent['wins']}} - ფრე:
+                        @if($sport->has_draw)
+                            {{$opponent['draw']}}
+                        @endif
+                         - წაგება:{{$opponent['lost']}}</p>
+                        <p>  +{{$sport->goal_name_ge}} :{{$opponent['goals_for']}} <br> -{{$sport->goal_name_ge}} :{{$opponent['goals_against']}}</p>
                         <div class="games">
                             @foreach($opponent['matches'] as $match)
                             <?php 
@@ -98,15 +102,21 @@
                 <div class="card-body">
                     <div class="stat">თამაში - {{$league_entry->played}}</div>
                     <div class="stat">მოგება - {{$league_entry->win}}</div>
+                    @if($sport->has_draw)
+
                     <div class="stat">ფრე - {{$league_entry->draw}}</div>
+                    @endif
+
                     <div class="stat">წაგება - {{$league_entry->loose}}</div>
                     <div class="stat">მოგება % - {{$prcwin}}%</div>
-                    <div class="stat">ფრე % - {{$prclose}}%</div>
+                    @if($sport->has_draw)
+                        <div class="stat">ფრე % - {{$prclose}}%</div>
+                    @endif
                     <div class="stat">წაგება % - {{$prcdraw}}%</div>
-                    <div class="stat">გატანილი გოლი - {{$league_entry->goals_for}}</div>
-                    <div class="stat">გაშვებული გოლი - {{$league_entry->goals_against}}</div>
-                    <div class="stat">საშ.გატანილი გოლი - {{$goalsforavg}}</div>
-                    <div class="stat">საშ.გაშვებული გოლი - {{$goalsagainstavg}}</div>
+                    <div class="stat">+{{$sport->goal_name_ge}} - {{$league_entry->goals_for}}</div>
+                    <div class="stat">-{{$sport->goal_name_ge}} - {{$league_entry->goals_against}}</div>
+                    <div class="stat">+საშ.{{$sport->goal_name_ge}} - {{$goalsforavg}}</div>
+                    <div class="stat">-საშ.{{$sport->goal_name_ge}} - {{$goalsagainstavg}}</div>
                     <div class="stat">მინიმალური ქულა - {{$league_entry->min_score}}</div>
                     <div class="stat">მაქსიმალური ქულა - {{$league_entry->max_score}}</div>
 

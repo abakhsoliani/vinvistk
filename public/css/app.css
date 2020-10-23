@@ -11162,3 +11162,14 @@ img.delete {
   width: 100%;
 }
 
+.player-names > span.green,
+.player-goals > span.green {
+  font-weight: bold;
+  color: black;
+}
+
+.player-names > span,
+.player-goals > span {
+  color: #6f6f6f;
+}
+

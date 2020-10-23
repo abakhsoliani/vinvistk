@@ -25,7 +25,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="first_player_score">პირველი მოთამაშის ქულები(გოლები)</label>
+                        <label for="first_player_score">პირველი მოთამაშის {{$sport->goal_name_ge}}</label>
                         <input type="number" class="form-control" id="first_player_score" name="first_player_score" placeholder="პირველის ქულები">
                     </div>
                 </div>
@@ -41,7 +41,7 @@
                     </div>
                     <input type="hidden" value="{{$league->id}}" name="league_id">
                     <div class="form-group">
-                        <label for="second_player_score"> მეორე მოთამაშის ქულები(გოლები)</label>
+                        <label for="second_player_score"> მეორე მოთამაშის {{$sport->goal_name_ge}}</label>
                         <input type="number" class="form-control" id="second_player_score" name="second_player_score" placeholder="მეორეს ქულები">
                     </div>
                 </div>
@@ -65,12 +65,14 @@
                             <th >სახელი</th>
                             <th >თამაში</th>
                             <th >მოგება</th>
-                            <th >ფრე</th>
+                            @if($sport->has_draw)
+                                <th >ფრე</th>
+                            @endif
                             <th >წაგება</th>
-                            <th >გოლი +</th>
-                            <th >გოლი -</th>
-                            <th >საშ.გოლი +</th>
-                            <th >საშ.გოლი -</th>
+                            <th >{{$sport->goal_name_ge}} +</th>
+                            <th >{{$sport->goal_name_ge}} -</th>
+                            <th >საშ.{{$sport->goal_name_ge}} +</th>
+                            <th >საშ.{{$sport->goal_name_ge}} -</th>
                             <th >მინ ქულა</th>
                             <th >მაქს ქულა</th>
                             <th >ქულა</th>
@@ -92,11 +94,13 @@
                                 } 
                                 ?>
 
-                            <th scope="row">1</th>
+                            <th scope="row">{{$loop->index+1}}</th>
                             <td><a href="{{$league->id}}/user/{{$league_entry->user->id}}">{{$league_entry->user->name}}</a></td>
                             <td>{{$league_entry->played}}</td>
                             <td>{{$league_entry->win}}</td>
-                            <td>{{$league_entry->draw}}</td>
+                            @if($sport->has_draw)
+                                <td>{{$league_entry->draw}}</td>
+                            @endif
                             <td>{{$league_entry->loose}}</td>
                             <td>{{$league_entry->goals_for}}</td>
                             <td>{{$league_entry->goals_against}}</td>
@@ -151,13 +155,13 @@
 
                         <form class="match" method="post" action="/delete_match" enctype="multipart/form-data">
                             @csrf
-                            <div class="player-names">
-                                <span>{{$match->first_user->name}}</span>
-                                <span>{{$match->second_user->name}}</span>
+                            <div class="player-names ">
+                                <span class="{{$firstTipClass}}">{{$match->first_user->name}}</span>
+                                <span class="{{$secondTipClass}}">{{$match->second_user->name}}</span>
                             </div> 
                             <div class="player-goals">
-                                <span>{{$match->first_user_goals}}</span>
-                                <span>{{$match->second_user_goals}}</span>
+                                <span class="{{$firstTipClass}}">{{$match->first_user_goals}}</span>
+                                <span class="{{$secondTipClass}}">{{$match->second_user_goals}}</span>
                             </div> 
                             <div class="player-scores">
                                 
