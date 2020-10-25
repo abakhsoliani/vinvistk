@@ -35,6 +35,11 @@ class Match extends Model
         return $this->belongsTo('App\Models\User', 'second_user_id');
 
     }
+
+    public function old_league_entry(){
+        return $this->hasOne('App\Models\OldLeague_entry');
+    }
+
     
 }
 

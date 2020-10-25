@@ -8,11 +8,11 @@
 <div class="popup" id="popup">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-        <div class="card-header"><span>{{ __('შეცდომა') }}</span></div>
+        <div class="card-header"><span>@lang("home.Error")</span></div>
         <div class="card-body">
             <p>{{$errors[0]}}</p>
         </div>
-        <a href="{{ url('/home') }}"class="btn btn-primary">შეცდომის დახურვა</a>
+        <a href="{{ url('/home') }}"class="btn btn-primary">@lang("home.Close error")</a>
     </div>
   </div>
 </div>
@@ -51,16 +51,16 @@
   <div class="modal-dialog modal-lg">
       @csrf
     <div class="modal-content">
-        <div class="card-header"><span>{{ __('ლიგაში გაწევრიანება') }}</span></div>
+        <div class="card-header"><span>@lang("league.Enter league")</span></div>
         <div class="card-body">
-            <p>შეიყვანე მოწვევის კოდი და გაწევრიანდი მეგობრის ლიგაში</p>
+            <p>@lang("league.Enter league instruction")</p>
                 
                 <div class="form-group">
-                    <input type="text" class="form-control" id="league_code" name="league_code" placeholder="ლიგის მოწვევის კოდი">
+                    <input type="text" class="form-control" id="league_code" name="league_code" placeholder='@lang("league.Enter league code")'>
                 </div>
                 
                 
-            <input class="btn btn-primary float-right" type="submit"  value="გაწევრიანება">
+            <input class="btn btn-primary float-right" type="submit"  value='@lang("league.Enter league button")'>
         </div>
     </div>
   </div>
@@ -70,7 +70,7 @@
     <div class="row justify-content-center">
         <div class="col-md-9">
             <div class="card">
-                <div class="card-header"><span>{{ __('ჩემი ლიგები') }}</span> <button class="btn-secondary" data-toggle="modal" data-target=".modal-1">ლიგის შექმნა</button><button class="btn-primary" data-toggle="modal" data-target=".modal-2" style="margin-right: 20px">ლიგაში გაწევრიანება</button></div>
+                <div class="card-header"><span>@lang("league.My leagues")</span> <button class="btn-secondary" data-toggle="modal" data-target=".modal-1">@lang("league.Create league")</button><button class="btn-primary" data-toggle="modal" data-target=".modal-2" style="margin-right: 20px">@lang("league.Enter league")</button></div>
 
                 <div class="card-body">
                
@@ -89,7 +89,7 @@
         </div>
         <div class="col-md-3" style="font-size: .8em;">
             <div class="card">
-                <div class="card-header">{{ __('ჩემი თამაშები') }}</div>
+                <div class="card-header">@lang("league.My games")</div>
 
                 <div class="card-body">
                
@@ -126,12 +126,12 @@
                         {{$match->league->name}}
                     </div>
                 <div class="player-names">
-                    <span>{{$match->first_user->name}}</span>
-                    <span>{{$match->second_user->name}}</span>
+                    <span class="{{$firstTipClass}}">{{$match->first_user->name}}</span>
+                    <span class="{{$secondTipClass}}">{{$match->second_user->name}}</span>
                 </div> 
                 <div class="player-goals">
-                    <span>{{$match->first_user_goals}}</span>
-                    <span>{{$match->second_user_goals}}</span>
+                    <span class="{{$firstTipClass}}">{{$match->first_user_goals}}</span>
+                    <span class="{{$secondTipClass}}">{{$match->second_user_goals}}</span>
                 </div> 
                 <div class="player-scores">
                     <span class="{{$firstTipClass}}">{{$match->first_user_score}}

@@ -25,7 +25,6 @@ class CreateSportsTable extends Migration
             $table->integer('max_change');
             $table->float('premial_scale');
             $table->float('draw_scale');
-
             $table->integer('premial_score');
             $table->integer('max_point_difference');
             $table->integer('starting_point');

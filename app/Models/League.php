@@ -18,19 +18,18 @@ class League extends Model
     ];
 
     public function sport(){
-        return $this->belongsTo('App\Models\Sport');
+        return $this->belongsTo(Sport::class);
     }
     
+
+    //laravel scope
     public function league_entries(){
-        return $this->hasMany('App\Models\League_entry')->orderBy('score', 'desc');
+        return $this->hasMany(League_entry::class)->orderBy('score', 'desc');
     }
 
     public function matches(){
-        return $this->hasMany('App\Models\Match')->orderBy('id', 'desc')->limit(10);
+        return $this->hasMany(Match::class)->orderBy('id', 'desc')->limit(10);
     }
 
-    public function invitations(){
-        return $this->hasMany('App\Models\Invitation');
-    }
 
 }

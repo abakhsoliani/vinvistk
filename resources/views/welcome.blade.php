@@ -25,18 +25,18 @@
             @if (Route::has('login'))
                 <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block">
                     @auth
-                        <a style="color:white" href="{{ url('/home') }}" class="text-sm  underline">მთავარი</a>
+                        <a style="color:white" href="{{ url('/home') }}" class="text-sm  underline">@lang('home.Main')</a>
                     @else
-                        <a style="color:white" href="{{ route('login') }}" class="text-sm  underline">ავტორიზაცია</a>
+                        <a style="color:white" href="{{ route('login') }}" class="text-sm  underline">@lang('home.Authorisation')</a>
 
                         @if (Route::has('register'))
-                            <a style="color:white" href="{{ route('register') }}" class="ml-4 text-sm  underline">რეგისტრაცია</a>
+                            <a style="color:white" href="{{ route('register') }}" class="ml-4 text-sm  underline">@lang('home.Registration')</a>
                         @endif
                     @endif
                 </div>
             @endif
 
-            <h1 style="color: white;">ვინ ვის ტკ???</h1>
+            <h1 style="color: white;">@lang('home.Heading')</h1>
         </div>
     </body>
 </html>

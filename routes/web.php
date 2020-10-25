@@ -16,18 +16,18 @@ use App\Http\Controllers\Auth\LoginController;
 */
 
 Route::get('/', function () {
+
     return view('welcome');
 });
+
 
 Route::get('/privacy', function () {
     return view('privacy');
 });
 
-
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
 
 Route::get('/league/{id}', [App\Http\Controllers\HomeController::class, 'league'])->name('league');
 
@@ -39,9 +39,6 @@ Route::post('/create_league', [App\Http\Controllers\HomeController::class, 'crea
 
 Route::post('/add_match', [App\Http\Controllers\HomeController::class, 'add_match'])->name('add_match');
 Route::post('/delete_match', [App\Http\Controllers\HomeController::class, 'delete_match'])->name('delete_match');
-
-
-
 
 Route::get('login/facebook', [LoginController::class, 'redirectToProvider']);
 Route::get('login/facebook/callback', [LoginController::class, 'handleProviderCallback']);

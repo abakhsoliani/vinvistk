@@ -33,6 +33,6 @@ return [
     'facebook' => [
         'client_id' => env('facebook_CLIENT_ID'),
         'client_secret' => env('facebook_CLIENT_SECRET'),
-        'redirect' => url('login/facebook/callback'),
+      //  'redirect' => url('login/facebook/callback'),
     ],
 ];

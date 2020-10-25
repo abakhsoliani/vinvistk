@@ -8,6 +8,8 @@ use App\Models\Sport;
 use App\Models\League;
 use App\Models\League_entry;
 use App\Models\User;
+use App\Models\OldLeague_entry;
+
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Match;
@@ -112,9 +114,9 @@ class HomeController extends Controller
         $matches = $league->matches;
         $user = User::find($request->user_id);
         $sport = $league->sport;
+        $old_league_entries = OldLeague_entry::where(['league_id' => $request->league_id, 'user_id' => $request->user_id])->orderBy('id', 'desc')->get();
 
-
-        return view('stats',['league' => $league,'league_entry' => $league_entry, 'sorted_opponents' => $matches_sorted, 'user' => $user, 'sport'=>$sport]);
+        return view('stats',['league' => $league,'league_entry' => $league_entry, 'sorted_opponents' => $matches_sorted, 'user' => $user, 'sport'=>$sport, 'old_league_entries' => $old_league_entries]);
     }
 
 
@@ -144,6 +146,8 @@ class HomeController extends Controller
                 ]);
 
                 $league_entry->save();
+
+               
                 
 
             }
@@ -239,9 +243,70 @@ class HomeController extends Controller
     }
 
 
+    public function calculatePlaces($first_player_entry, $second_player_entry){
+        $league = League::find($first_player_entry->league->id);
+        $league_entries = $league->league_entries;
+
+        $firstPos = 0;
+        $secondPos = 0;
+        $index = 1;
+        foreach($league_entries as $league_entry){
+            if($league_entry->id==$first_player_entry->id){
+                $firstPos = $index;
+            }
+            if($league_entry->id==$second_player_entry->id){
+                $secondPos = $index;
+            }
+            $index++;
+        }
+        return ['firstPos' => $firstPos, 'secondPos' => $secondPos];
+    }
+
+
+
+    public function createOldLeagueEntries($first_player_entry, $second_player_entry, $match){
+
+        $places = $this->calculatePlaces($first_player_entry, $second_player_entry);
+
+        $league_entry_1 = OldLeague_entry::create([
+            'user_id' => $first_player_entry->user->id,
+            'league_id' => $first_player_entry->league->id,
+            'played' => $first_player_entry->played,
+            'win' => $first_player_entry->win,
+            'loose' => $first_player_entry->loose,
+            'draw' => $first_player_entry->draw,
+            'goals_for' => $first_player_entry->goals_for,
+            'goals_against' => $first_player_entry->goals_against,
+            'max_score' => $first_player_entry->max_score,
+            'min_score' => $first_player_entry->min_score,
+            'score' => $first_player_entry->score,
+            'match_id' => $match->id,
+            'place' => $places['firstPos']
+        ]);
+
+        $league_entry_2 = OldLeague_entry::create([
+            'user_id' => $second_player_entry->user->id,
+            'league_id' => $second_player_entry->league->id,
+            'played' => $second_player_entry->played,
+            'win' => $second_player_entry->win,
+            'loose' => $second_player_entry->loose,
+            'draw' => $second_player_entry->draw,
+            'goals_for' => $second_player_entry->goals_for,
+            'goals_against' => $second_player_entry->goals_against,
+            'max_score' => $second_player_entry->max_score,
+            'min_score' => $second_player_entry->min_score,
+            'score' => $second_player_entry->score,
+            'match_id' => $match->id,
+            'place' => $places['secondPos']
+        ]);
+        $league_entry_1->save();
+        $league_entry_2->save();
+    }
+
     public function add_match_entry($first_player_entry_id, $first_player_score, $second_player_entry_id, $second_player_score, $league_id){
         $sport = League::find($league_id)->sport;
-        if($first_player_score==$second_player_score && $sport->has_draw==0){
+
+        if(($first_player_score==$second_player_score && $sport->has_draw==0) || $first_player_entry_id==$second_player_entry_id ){
             return redirect('league/'.$league_id);
         }
         $first_player_entry = League_entry::find($first_player_entry_id);
@@ -251,7 +316,21 @@ class HomeController extends Controller
 
         $calculatedScores = $this->calculateScores($sport,$first_player_entry, $first_player_goals, $second_player_entry, $second_player_goals);
 
-       
+
+        $match = Match::create([
+            'league_id' => $league_id,
+            'first_user_id' =>$first_player_entry->user->id,
+            'second_user_id'=> $second_player_entry->user->id,
+            'first_user_goals' =>$first_player_goals,
+            'second_user_goals' =>$second_player_goals,
+            'second_user_score' =>$second_player_entry->score-$calculatedScores['change'],
+            'first_user_score'=>$first_player_entry->score+$calculatedScores['change'],
+            'first_user_old_score' => $first_player_entry->score,
+            'second_user_old_score' =>$second_player_entry->score,
+        ]);
+
+
+        $match->save();
 
         $first_player_entry->played+=1;
         $second_player_entry->played+=1;
@@ -270,20 +349,7 @@ class HomeController extends Controller
             $second_player_entry->draw+=1;
         }
 
-        $match = Match::create([
-            'league_id' => $league_id,
-            'first_user_id' =>$first_player_entry->user->id,
-            'second_user_id'=> $second_player_entry->user->id,
-            'first_user_goals' =>$first_player_goals,
-            'second_user_goals' =>$second_player_goals,
-            'second_user_score' =>$second_player_entry->score-$calculatedScores['change'],
-            'first_user_score'=>$first_player_entry->score+$calculatedScores['change'],
-            'first_user_old_score' => $first_player_entry->score,
-            'second_user_old_score' =>$second_player_entry->score,
-        ]);
-
-
-        $match->save();
+       
 
 
         
@@ -304,6 +370,8 @@ class HomeController extends Controller
 
         $first_player_entry->save();
         $second_player_entry->save();
+        $this->createOldLeagueEntries($first_player_entry, $second_player_entry, $match);
+
     }
 
     public function add_match(Request $request){
@@ -366,6 +434,10 @@ class HomeController extends Controller
 
 
             array_push($matchesToReverse, $match);
+            $oldLeagueEntries = OldLeague_entry::where('match_id' , $match->id)->get();
+            $oldLeagueEntries[2]->delete();
+
+            $oldLeagueEntries[1]->delete();
             $match->delete();
             if($match->id == $request->match_id)break;
 
